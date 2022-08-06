@@ -9,6 +9,7 @@ import numpy as np
 from scipy import linalg
 from scipy.optimize import minimize
 from matplotlib import pyplot as plt
+import sys, os
 linewide=2
 
 
@@ -32,153 +33,102 @@ time=np.loadtxt(parfile)[0,1:]
 isosignal=(par+2*per)/3
 isoerr=(parerr+2*pererr)/3
         
-
+# Plotting raw data for visual check for possible errors in frequency domain
 plt.figure(figsize=(10,5))
 z=0
+times_to_plot=np.array([8,11,14,18,24,28,31,33])
 plt.plot(wavenumbers,np.zeros_like(wavenumbers))
-color=iter(plt.cm.rainbow(np.linspace(1,0,len([8,11,14,18,24,28,31,33]))))
-for z in [8,11,14,18,24,28,31,33]:
+color=iter(plt.cm.rainbow(np.linspace(1,0,len(times_to_plot))))
+for z in times_to_plot:
     c=next(color)
-    plt.plot(wavenumbers,isosignal[:,z],linewidth=2,color=c,label=np.str(time[z])+' ps')    #parallel
+    plt.plot(wavenumbers,isosignal[:,z],linewidth=2,color=c,label=np.str(time[z])+' ps')  
 plt.title('delta A spectra')
 plt.xlabel('Wavenumber, cm-1')
 plt.ylabel('delta_A')
 plt.xlim(np.min(wavenumbers),np.max(wavenumbers))
 plt.ylim(-0.013,0.003)
-#plt.axhline(y=1,xmin=-1,xmax=10)
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=4, mode="expand", borderaxespad=0.)
 plt.show()  
     
+# Checking visually for errors in time domain
 plt.figure(figsize=(10,5))
-for i in [25,73]:
-#plt.errorbar(time1[1:],(isosignal1[6,1:]-isosignal1[6,0]),yerr=isoerr1[6,1:],label=np.str(wavenumbers1[6])+' cm-1')
-    plt.errorbar(time[2:],isosignal[i,2:],yerr=isoerr[i,2:],label=np.str(wavenumbers[i])+' cm-1 ')    #parallel
-plt.plot(time,-0.019*np.exp(-time/0.7)-0.0006,label='fit')    #parallel
+wvn_to_plot=np.array([25,73])
+for i in wvn_to_plot:
+    plt.errorbar(time[2:],isosignal[i,2:],yerr=isoerr[i,2:],label=np.str(wavenumbers[i])+' cm-1 ')   
 plt.title('delta A spectra')
 plt.xlabel('time, ps')
 plt.ylabel('delta_A')
-#plt.ylim(-0.005,0.005)
+
 plt.xlim(0.26,20)
 plt.xticks(np.arange(0,20,2))
 plt.grid()
-plt.ylim(-0.02,0)
-#plt.axhline(y=1,xmin=-1,xmax=10)
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
 plt.show() 
 
-plt.figure(figsize=(12,6))
-z=0
-plt.plot(wavenumbers,np.zeros_like(wavenumbers))
-color=iter(plt.cm.rainbow(np.linspace(1,0,len([4,8,11,14,18,24,28,30,31,32]))))
-for z in [6,8,11,14,18,24,28,30,31,32]:
-    c=next(color)
-    plt.plot(wavenumbers,isosignal[:,z]/np.abs(np.min(isosignal[62:,z])),linewidth=2,color=c,label=np.str(time[z])+' ps')    #parallel
-plt.title('delta A spectra')
-plt.xlabel('Wavenumber, cm-1')
-plt.ylabel('delta_A')
-plt.xlim(np.min(wavenumbers),np.max(wavenumbers))
-plt.ylim(-1.1,0.4)
-#plt.axhline(y=1,xmin=-1,xmax=10)
-plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=4, mode="expand", borderaxespad=0.)
-plt.show() 
-
+# Calculating anisotropy parameter and anisotropy error
 R=(par-per)/(par+2*per)
 Rerr=np.abs(R)*np.sqrt(((parerr+pererr)/(par-per))**2+((parerr+2*pererr)/(par+2*per))**2)
 
-plt.figure(figsize=(10,5))
-for i in [26,51,80,]:
-#plt.errorbar(time1[1:],(isosignal1[6,1:]-isosignal1[6,0]),yerr=isoerr1[6,1:],label=np.str(wavenumbers1[6])+' cm-1')
-    plt.errorbar(time[2:],R[i,2:],yerr=Rerr[i,2:],label=np.str(wavenumbers[i])+' cm-1 ')    #parallel
-#    plt.plot(time[2:],per[i*5+2,2:],label=np.str(wavenumbers[i*5+2])+' cm-1 ')    #parallel
-plt.title('delta A spectra')
-plt.xlabel('time, ps')
-plt.ylabel('R')
-#plt.ylim(-0.005,0.005)
-plt.xlim(0,2)
-plt.xticks(np.arange(0,2,0.2))
-plt.grid()
-plt.ylim(-0.1,0.2)
-#plt.axhline(y=1,xmin=-1,xmax=10)
-plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
-plt.show() 
-
-plt.figure(figsize=(10,5))
-w=np.arange(22,60,5)
-color=iter(plt.cm.rainbow(np.linspace(1,0,len(w))))
-for i in w:
-    c=next(color)
-    plt.plot(time[2:],R[i,2:],color=c,linewidth=linewide,label=np.str(wavenumbers[i])+' cm-1 ')
-plt.title('delta A spectra')
-plt.xlabel('time, ps')
-plt.ylabel('R')
-#plt.ylim(-0.005,0.005)
-plt.xlim(0.25,10)
-plt.xticks(np.arange(0.5,10,0.5))
-plt.grid()
-plt.ylim(-0.05,0.4)
-#plt.axhline(y=1,xmin=-1,xmax=10)
-plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
-plt.show() 
-
+# Averaging anisotropy over few ranges and plotting to see the trends 
+# in different spectroscopical regions
 plt.figure(figsize=(10,5))
 R1=(np.sum(par[22:48,:],axis=0)-np.sum(per[22:48,:],axis=0))/(np.sum(par[22:48,:],axis=0)+2*np.sum(per[22:48,:],axis=0))
 R2=(np.sum(par[60:80,:],axis=0)-np.sum(per[60:80,:],axis=0))/(np.sum(par[60:80,:],axis=0)+2*np.sum(per[60:80,:],axis=0))
 R3=(np.sum(par[102:116,:],axis=0)-np.sum(per[102:116,:],axis=0))/(np.sum(par[102:116,:],axis=0)+2*np.sum(per[102:116,:],axis=0))
 R4=(np.sum(par[90:102,:],axis=0)-np.sum(per[90:102,:],axis=0))/(np.sum(par[90:102,:],axis=0)+2*np.sum(per[90:102,:],axis=0))
-#R5=(np.sum(par[125:138,:],axis=0)-np.sum(per[125:138,:],axis=0))/(np.sum(par[125:138,:],axis=0)+2*np.sum(per[125:138,:],axis=0))
-#R6=(np.sum(par[142:145,:],axis=0)-np.sum(per[142:145,:],axis=0))/(np.sum(par[142:145,:],axis=0)+2*np.sum(per[142:145,:],axis=0))
+R5=(np.sum(par[125:138,:],axis=0)-np.sum(per[125:138,:],axis=0))/(np.sum(par[125:138,:],axis=0)+2*np.sum(per[125:138,:],axis=0))
+R6=(np.sum(par[142:145,:],axis=0)-np.sum(per[142:145,:],axis=0))/(np.sum(par[142:145,:],axis=0)+2*np.sum(per[142:145,:],axis=0))
 plt.plot(time[2:],R1[2:],linewidth=linewide,label='R1')
 plt.plot(time[2:],R2[2:],linewidth=linewide,label='R2')
 plt.plot(time[2:],R3[2:],linewidth=linewide,label='R3')
 plt.plot(time[2:],R4[2:],linewidth=linewide,label='R4')
-#plt.plot(time[2:],R5[2:],linewidth=linewide,label='R3')
-#plt.plot(time[2:],R6[2:],linewidth=linewide,label='R6')
-#    plt.plot(time[2:],per[i*5+2,2:],label=np.str(wavenumbers[i*5+2])+' cm-1 ')    #parallel
+plt.plot(time[2:],R5[2:],linewidth=linewide,label='R3')
+plt.plot(time[2:],R6[2:],linewidth=linewide,label='R6')
 plt.title('delta A spectra')
 plt.xlabel('time, ps')
 plt.ylabel('R')
-#plt.ylim(-0.005,0.005)
 plt.xlim(0.25,5)
 plt.xticks(np.arange(0.5,5,0.5))
 plt.grid()
 plt.ylim(-0.05,0.25)
-#plt.axhline(y=1,xmin=-1,xmax=10)
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
 plt.show() 
 
+# Writing the calculated anisotropy into a file for further processing
 location=os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-#newdir=os.path.dirname(os.path.join(location,'anisotropy/'))
 filename='HBr_w12.dat' 
 file=os.path.join(location,filename)
 result=np.array([time,R1,R2,R3])
 np.savetxt(file,result,delimiter=' ')
 
+# Cutting out early delay times for the fitting (to determine rate parameters)
 cut=6
-t=time[cut:-5]#-time[11]
+t=time[cut:-5]
 data=np.transpose(isosignal[:,cut:-5])
+
+# Cutting out early delay times for the spectral signature calculation
 cuta=6
 ta=time[cuta:-5]
 par=np.transpose(par[:,cuta:-5])
 per=np.transpose(per[:,cuta:-5])
 test=0
 
-interm=-1
-#pop0=np.array([50/56,6/56,0,0])
-rateparam=np.array([2,0.5,0.5])                #k1,k-1,alfa,beta
+# Setting up initial guess for the fit
+interm=-1    # when positive - intermediate state (number <interm>) has zero spectral signature
+rateparam=np.array([2,0.5,0.5])                
 borders=np.array([[0,100],[0,100],[0,1]])
-#err=np.empty(shape(isosignal))
 
-#print(isoerr[:5,:5])
+
+# Setting up weights for each experimental point: either equal or reciprocal of errorbars
 isoerr=np.ones_like(np.transpose(isoerr[:,cut:-5]))/1000
 #isoerr=np.transpose(isoerr[:,cut:-5])
 weights=np.square(np.reciprocal(isoerr))/10000000
 
 
-
+# Chi-squared parameter calculation
 def chi2(rate):
-#    t=time[cut:]+rate[2]
-#    x=rate[2]
 
+# Kinetic model matrix (3 or 4 levels)
     pop0=np.array([1,0,0])
     ratem=np.array([[-rate[0],         0,        0],
                     [rate[0],          -rate[1],        0],
@@ -191,31 +141,35 @@ def chi2(rate):
     chi2_0=0
     i=0   
     
+    # Case 1. Intermediate state has signature
     if interm<0:
         pop=np.empty((len(t),len(pop0)))
         ssign=np.empty((len(pop0),len(wavenumbers)))
-        ssignwoi=np.empty_like(ssign)#((len(pop0)-1,len(wavenumbers)))
+        ssignwoi=np.empty_like(ssign)
+        
+        # Creating populations matrix
         for i in range(len(t)):
             pop[i,:]=np.dot(linalg.expm(ratem*t[i]),pop0)
         
-        #print(pop[:,:6])
-    #    ssign[interm,:]=np.zeros(len(ssign[2,:]))
+        # Calculating spectral signatures by solving the matrix equation
         i=0
         for i in range(len(wavenumbers)):
             w=np.sqrt(np.diag(weights[:,i]))
             popw=np.dot(w,pop)
-            popwoi=popw#np.delete(popw,interm,axis=1)
             dataw=np.dot(data[:,i],w)
-            ssignwoi[:,i]=linalg.lstsq(popwoi,dataw)[0]
-        ssign=ssignwoi#np.insert(ssignwoi,interm,np.zeros(len(wavenumbers)),axis=0)
+            ssign[:,i]=linalg.lstsq(popw,dataw)[0]
+            
+    # Case 2. Intermediate state has zero signature    
     else:
         pop=np.empty((len(t),len(pop0)))
         ssign=np.empty((len(pop0),len(wavenumbers)))
         ssignwoi=np.empty((len(pop0)-1,len(wavenumbers)))
+        
+        # Creating population matrix
         for i in range(len(t)):
             pop[i,:]=np.dot(linalg.expm(ratem*t[i]),pop0)
         
-        ssign[interm,:]=np.zeros(len(ssign[0,:]))
+        # Calculating spectral signatures by solving the matrix equation
         i=0
         for i in range(len(wavenumbers)):
             w=np.sqrt(np.diag(weights[:,i]))
@@ -224,14 +178,16 @@ def chi2(rate):
             dataw=np.dot(data[:,i],w)
             ssignwoi[:,i]=linalg.lstsq(popwoi,dataw)[0]
         ssign=np.insert(ssignwoi,interm,np.zeros(len(wavenumbers)),axis=0)
-        
+    
+    # Adding custom constraints to add physical meaning to the parameters and signatures
     constraints=10*sum(np.absolute(rate-borders[:,0])-(rate-borders[:,0]))+10*sum(np.absolute(borders[:,1]-rate)-(borders[:,1]-rate))
-#    constraints=constraints+np.sum(np.abs(ssign[1,:16])+ssign[1,:16])*10
+
+    # Calculating Chi-squared with added constraints
     chi2_0=sum(sum(((data-np.dot(pop,ssign))/isoerr)**2))/(len(data[0,:])*len(data[:,0]))+constraints
-#    print(chi2_0)
+
     return chi2_0
 
-bnds=((0,0.5),(0,0.8),(0,0.8),(0,2),(0,1))
+# Optimization procedure
 q=0
 for q in range(5):
     resr=minimize(chi2,rateparam,method='CG', options={'maxiter': 10000})
@@ -244,10 +200,10 @@ for q in range(5):
 p0=resr['x']
 print(resr)
 
-
+# Calculating spectral signatures using the optimized parameters
+# The logic is similar to the Chi-squared calculation procedure
 def signatures(rate):
-#    t=np.round(time[cut:]+rate1[2],decimals=2)
-#    x1=rate1[2]
+
 
     pop0=np.array([1,0,0])
     ratem=np.array([[-rate[0],         0,        0],
@@ -259,13 +215,11 @@ def signatures(rate):
 #                     [        0,        0, rate1[0],      0]])
 
     i=0  
-#    pop0=([p0[2],1-p0[2]])
     pop1=np.empty((len(t),len(pop0)))
     ssign1=np.empty((len(pop0),len(wavenumbers)))
     for i in range(len(t)):
         pop1[i,:]=np.dot(linalg.expm(ratem*t[i]),pop0)
         
-    #print(pop[:,:6])
     t1=np.arange(0,5,0.05)
     pop2=np.empty((len(t1),len(pop0)))
     i=0
@@ -273,7 +227,6 @@ def signatures(rate):
         pop2[i,:]=np.dot(linalg.expm(ratem*t1[i]),pop0)
     plt.figure(figsize=(12,7))
     plt.plot(t1,pop2[:,0],linewidth=linewide,label='A')   
-#    plt.plot(t1,pop2[:,1],label='OH---Cl evolution') 
     plt.plot(t1,pop2[:,1],linewidth=linewide,label='B')
     plt.plot(t1,pop2[:,2],linewidth=linewide,label='C') 
 #    plt.plot(t1,pop2[:,3],linewidth=linewide,label='D') 
@@ -281,20 +234,18 @@ def signatures(rate):
     plt.xlabel('time, ps')
     plt.ylabel('N')
     plt.xlim(0,5)
-    #plt.axhline(y=1,xmin=-1,xmax=10)
     plt.legend(bbox_to_anchor=(0., 1.05, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
     plt.show()   
     i=0
     
     if interm<0:
-        ssignwoi1=np.empty_like(ssign1)#((len(pop0)-1,len(wavenumbers)))
+        ssignwoi1=np.empty_like(ssign1)
         for i in range(len(wavenumbers)):
             w=np.sqrt(np.diag(weights[:,i]))
             popw1=np.dot(w,pop1)
-            popwoi1=popw1#np.delete(popw1,interm,axis=1)
             dataw1=np.dot(data[:,i],w)
-            ssignwoi1[:,i]=linalg.lstsq(popwoi1,dataw1)[0]
-        ssign1=ssignwoi1#np.insert(ssignwoi1,interm,np.zeros(len(wavenumbers)),axis=0)
+            ssign1[:,i]=linalg.lstsq(popw1,dataw1)[0]
+
     else:
         ssignwoi1=np.empty((len(pop0)-1,len(wavenumbers)))
         for i in range(len(wavenumbers)):
@@ -315,30 +266,25 @@ def signatures(rate):
         popex[i,:]=np.dot(linalg.expm(ratem*ta[i]),pop0)
     fit=np.dot(popex,ssign1)        
 
+    # Plotting the fit result
     plt.figure(figsize=(12,6))
     timeplt=np.array([0,3,6,8,10,12,15,20,22])
     color=iter(plt.cm.rainbow(np.linspace(1,0,len(range(len(timeplt))))))
     for i in timeplt:
         c=next(color)
-        plt.plot(wavenumbers,data[i,:],linestyle='None',marker='o',markersize=3,color=c)#,label='isotropic signal '+str(t[i]))
-   
-#    for i in range(0,len(t),4):
+        plt.plot(wavenumbers,data[i,:],linestyle='None',marker='o',markersize=3,color=c)
         plt.plot(wavenumbers,fit[i,:],linewidth=linewide,color=c,label=str(t[i])+' ps') 
-#    c=next(color)
-#    plt.plot(wavenumbers,data[-1,:],linestyle='None',marker='o',markersize=3,color=c) 
-#    plt.plot(wavenumbers,np.dot(pop1,ssign1)[-1,:],linewidth=linewide,color=c,label=str(t[-1])+' ps ') 
+
     plt.plot(wavenumbers,np.zeros_like(wavenumbers))
     plt.xticks(np.arange(np.min(wavenumbers).astype(int)//200+1,np.max(wavenumbers).astype(int)//200+1,1)*200)
     plt.grid()
-    #    plt.plot(t1,pop2[:,3],label='heat evolution')  
-#    plt.title('Fitting')
     plt.xlabel(r'$Wavenumber, cm^{-1}$',size=14)
     plt.ylabel(r'$\Delta\alpha$',size=20)
     plt.xlim(np.min(wavenumbers),np.max(wavenumbers))
-#    plt.ylim(-0.01,0.002)
     plt.legend(bbox_to_anchor=(0., 1.05, 1., .102), loc=3, ncol=4, mode="expand", borderaxespad=0.)
     plt.show()
-    
+
+#    # Optional save the result
 #    location=os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 #    newdir=os.path.dirname(os.path.join(location,'data and fit/'))
 #    print(newdir)
@@ -367,31 +313,25 @@ def signatures(rate):
 
 [sign,pop]=signatures(p0)    
 
-#print(sign)
+# Plot the calculated spectral signatures
 plt.figure(figsize=(12,6))
 plt.plot(wavenumbers,sign[0,:],linewidth=linewide,label='A')   
 plt.plot(wavenumbers,sign[2,:],linewidth=linewide,label='C')   
 plt.plot(wavenumbers,sign[1,:],linewidth=linewide,label='B')
-#plt.plot(wavenumbers,sign[3,:],linewidth=linewide,label='D ')
-#plt.plot(wavenumbers,np.zeros_like(wavenumbers)) 
-#plt.plot(wavenumbers,sign[4,:],label='sign5 '+str(t[2]))   
-#plt.plot(wavenumbers,sign[5,:],label='sign6 '+str(t[2])) 
-#plt.title('Spectral signatures')
+plt.title('Spectral signatures')
 plt.xlabel(r'$Wavenumber, cm^{-1}$',size=14)
 plt.ylabel(r'$\Delta\alpha$',size=20)
-#plt.ylim(-0.02,0.005)
 plt.xlim(np.min(wavenumbers),np.max(wavenumbers))
 plt.xticks(np.arange(np.min(wavenumbers).astype(int)//200+1,np.max(wavenumbers).astype(int)//200+1,1)*200)
 plt.grid()
-#plt.axhline(y=1,xmin=-1,xmax=10)
 plt.legend(bbox_to_anchor=(0., 1.05, 1, .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
 plt.show()    
 
 
-#time=time[cut:]+p0[2]
+# Time constants from the fit
 print(np.reciprocal(p0))
-#print(p0[4])
 
+# Saving the spectral signatures and optimized time constants
 location=os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 newdir=os.path.dirname(os.path.join(location,'data and fit/'))
 if not os.path.exists(newdir):
