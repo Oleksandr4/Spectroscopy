@@ -1,4 +1,4 @@
 # Spectroscopy
 Python scripts to analyze spectroscopic data
 
-Explanation of the algorithm is in the file "How to fit.pdf"
+Explanation of the algorithm is here: https://pure.uva.nl/ws/files/7299317/04.pdf
