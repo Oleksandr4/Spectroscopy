@@ -11,7 +11,7 @@ from scipy.optimize import minimize
 from matplotlib import pyplot as plt
 import sys, os
 linewide=2
-
+#Adding a comment here just to test if GitHub connection works
 
 # Loading the data files.
 # Spectra in parallel and perpendicular polarization combination and errorbars.
